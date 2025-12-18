@@ -1,0 +1,1689 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>揪團訂單管理系統</title>
+    <style>
+        /* CSS 樣式 */
+        /* 在 style 區塊新增 [cite: 245] */
+/* 密碼容器 */
+.password-container {
+    position: relative;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+/* 純圖案按鈕（無背景） */
+.toggle-password {
+    position: absolute;
+    right: 12px; /* 增加一點邊距 */
+    top: 50%;
+    transform: translateY(-50%);
+    
+    background: none; /* 移除背景 */
+    border: none;     /* 移除邊框 */
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: opacity 0.2s;
+}
+
+.toggle-password:hover {
+    opacity: 0.7; /* 滑過時稍微變淡 */
+}
+
+/* 眼睛圖標顏色 */
+.eye-icon {
+    width: 24px;
+    height: 24px;
+    fill: #555; /* 改為深灰色，適合白色背景 */
+}
+
+/* 確保文字不會被圖案擋住 */
+input[type="password"], 
+input[type="text"] {
+    padding-right: 45px !important;
+}
+#imagePreviewContainer img, 
+#orderDetailContent img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid #ddd;
+    margin-top: 10px;
+}
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f4f4f9; }
+        .page { display: none; padding: 20px; max-width: 800px; margin: 20px auto; background: white; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .page.active { display: block; }
+        header { background-color: #333; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        header h1 { margin: 0; font-size: 1.5em; }
+        nav button { background: none; border: none; color: white; padding: 8px 15px; margin-left: 10px; cursor: pointer; border-radius: 4px; transition: background-color 0.2s; }
+        nav button:hover { background-color: #555; }
+        input[type="text"], input[type="password"], input[type="email"], textarea, input[type="datetime-local"] { 
+            width: 100%; 
+            padding: 10px; 
+            margin-bottom: 10px; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+            box-sizing: border-box; 
+        }
+        button.primary { background-color: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; }
+        button.primary:hover { background-color: #0056b3; }
+
+        header {
+    display: flex;
+    align-items: center;
+}
+
+nav {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    gap: 8px;
+}
+.fab-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fab-icon {
+    color: white;
+    font-size: 36px;
+    line-height: 1;
+}
+
+        
+        /* 訂單卡片樣式調整 */
+       /* ===== 通用清單卡片樣式（對齊圖片） ===== */
+.list-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.order-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.order-card h3 {
+    margin: 0 0 8px;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.order-meta {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 10px;
+}
+
+.order-desc {
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+
+/* 按鈕區 */
+.card-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.btn-edit {
+    background: #f59e0b;
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.btn-detail {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.btn-edit:hover { background: #d97706; }
+.btn-detail:hover { background: #2c80b4; }
+
+        
+        /* 新增懸浮按鈕樣式 (FAB) */
+        .fab-button {
+            position: fixed; 
+            bottom: 30px; 
+            right: 30px; 
+            width: 60px;
+            height: 60px;
+            border-radius: 50%; 
+            background-color: #dc3545; 
+            color: white;
+            font-size: 2em;
+            line-height: 55px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+            cursor: pointer;
+            z-index: 1000; 
+            border: none;
+            transition: background-color 0.2s;
+        }
+        .fab-button:hover {
+            background-color: #c82333;
+        }
+
+        /* 團員列表排版樣式 */
+        .paylist-row, .paylist-header {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+            align-items: center;
+        }
+        .paylist-header {
+            font-weight: bold;
+            background-color: #f1f1f1;
+            border-bottom: 2px solid #ccc;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .paylist-row {
+            background-color: #fff;
+        }
+        .paylist-row:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .paylist-row > div, .paylist-header > div {
+            width: 15%; 
+            text-align: center;
+        }
+        .paylist-row .col-name, .paylist-header .col-name { width: 15%; text-align: left; }
+        .paylist-row .col-item, .paylist-header .col-item { width: 35%; }
+        .paylist-row .col-amount, .paylist-header .col-amount { width: 10%; }
+        .paylist-row .col-paid, .paylist-header .col-paid { width: 10%; }
+        .paylist-row .col-note, .paylist-header .col-note { width: 20%; }
+
+        /* 編輯/只讀時的輸入框樣式調整 */
+        .paylist-row input[type="text"], .paylist-row input[type="checkbox"] {
+            padding: 5px;
+            margin: 0;
+            height: auto;
+            min-height: 20px;
+            box-sizing: border-box;
+            width: 100%;
+        }
+        
+        /* 只讀狀態下的輸入框樣式 (閱讀模式) */
+        .paylist-row input[readonly] {
+            border: none;
+            background: transparent;
+            cursor: default;
+            padding-left: 0;
+            padding-right: 0;
+        }
+        /* 只讀狀態下，禁用 Checkbox 的點擊 */
+        .paylist-row input[readonly][type="checkbox"] {
+            pointer-events: none;
+            opacity: 0.8; 
+        }
+
+        /* 編輯狀態下的輸入框樣式 (編輯模式) */
+        .paylist-row input:not([readonly])[type="text"] {
+             border: 1px solid #ccc;
+        }
+
+        .paylist-row input[type="checkbox"] {
+            width: auto;
+        }
+          /* ===== 全站按鈕統一成膠囊型（不改顏色） ===== */
+button,
+button.primary,
+.btn-detail,
+.btn-edit,
+.delete-button {
+    border-radius: 999px;          /* 膠囊圓角 */
+    padding: 8px 18px;             /* 高度與寬度 */
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.2;
+    cursor: pointer;
+}
+
+/* hover 時只做微亮，不改色系 */
+button:hover,
+button.primary:hover,
+.btn-detail:hover,
+.btn-edit:hover,
+.delete-button:hover {
+    filter: brightness(0.95);
+}
+
+/* 搜尋結果頁：返回搜尋按鈕與卡片保持距離 */
+#SearchService1 button {
+    margin-top: 24px;
+}
+
+/* ===== Header 頭貼區 ===== */
+.avatar-wrapper {
+    position: relative;
+}
+
+/* 圓形頭貼按鈕 */
+.avatar-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #1a73e8;
+    color: white;
+    font-size: 18px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 浮出選單 */
+.user-menu {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    width: 260px;
+    background: #000000;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    padding: 12px;
+    display: none;
+    z-index: 2000;
+}
+
+/* 顯示狀態 */
+.user-menu.active {
+    display: block;
+}
+
+/* 選單上方使用者資訊 */
+.user-menu-header {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 10px;
+}
+
+.user-avatar-large {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #1a73e8;
+    color: white;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.user-greeting {
+    font-size: 14px;
+}
+
+.user-greeting div:first-child {
+    font-weight: 600;
+}
+
+.user-email {
+    font-size: 12px;
+    color: #6c757d;
+}
+
+/* 選單按鈕 */
+.user-menu button {
+    width: 100%;
+    border: none;
+    background: none;
+    padding: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: left;
+}
+
+.user-menu button:hover {
+    background: #f1f3f4;
+}
+
+    </style>
+</head>
+<body>
+
+    <header id="mainHeader" style="display:none;">
+        <h1>揪團系統</h1>
+        <nav>
+            <button onclick="showPage('MainPage')">主畫面</button>
+            <button onclick="showPage('JoinOrder')">我加的單</button>
+            <button onclick="showPage('Order')">我揪的單</button>
+            <button onclick="showPage('HistoryRecord')">歷史紀錄</button>
+            <button onclick="showPage('SearchService')">搜尋</button>
+           <div class="avatar-wrapper">
+    <button class="avatar-btn" onclick="toggleUserMenu()">
+        <span id="avatarText">👤</span>
+    </button>
+
+    <div id="userMenu" class="user-menu">
+        <div class="user-menu-header">
+            <div class="user-avatar-large">👤</div>
+            <div class="user-greeting">
+                <div id="userGreeting">你好！</div>
+                <div class="user-email" id="userAccount"></div>
+            </div>
+        </div>
+
+        <button onclick="showPage('Page'); closeUserMenu()">更改用戶資料</button>
+        <button onclick="logout(); closeUserMenu()">登出</button>
+    </div>
+</div>
+
+        </nav>
+    </header>
+
+    <div id="app-container">
+
+        <div id="User" class="page active">
+            <h2>初始頁面 (登入/註冊)</h2>
+            <p>請輸入帳號密碼登入或註冊。</p>
+            <input type="text" id="loginAccount" placeholder="帳號">
+            <div class="password-container">
+    <input type="password" id="loginPassword" placeholder="密碼">
+    <button type="button" class="toggle-password" onclick="togglePasswordVisibility('loginPassword')">
+        <svg class="eye-icon" viewBox="0 0 24 24"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.82l2.92 2.92c1.51-1.26 2.7-2.89 3.44-4.74-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/></svg>
+    </button>
+</div>
+            <button class="primary" onclick="login()">登入</button>
+            <button onclick="showPage('UserProfile')">註冊</button>
+        </div>
+
+        <div id="UserProfile" class="page">
+            <h2>註冊</h2>
+            <input type="text" id="registerAccount" placeholder="**帳號: String** (必填)" required> 
+            <div class="password-container">
+    <input type="password" id="registerPassword" placeholder="密碼">
+    <button type="button" class="toggle-password" onclick="togglePasswordVisibility('registerPassword')">
+        <svg class="eye-icon" viewBox="0 0 24 24"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.82l2.92 2.92c1.51-1.26 2.7-2.89 3.44-4.74-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/></svg>
+    </button>
+</div>
+            <input type="text" id="registerName" placeholder="姓名: String" required> 
+            <input type="text" placeholder="電話: String">
+            <input type="email" placeholder="電子郵件: String">
+            
+            <button class="primary" onclick="register()">註冊</button>
+            <button onclick="showPage('User')">返回</button>
+        </div>
+
+        <div id="MainPage" class="page">
+            <h2>主畫面</h2>
+            <p>歡迎回來！以下是您的訂單概況。</p>
+            <div class="card">
+                <p>請使用上方的導航欄進入各功能頁面。</p>
+                <p>點擊右下角的紅色 **+** 按鈕可以 **新增揪團**。</p>
+            </div>
+        </div>
+
+        <div id="Order" class="page">
+            <h2>我揪的單 (進行中)</h2>
+            <div id="myOrderList">
+                <p style="color: #6c757d;">載入中...</p>
+            </div>
+     
+        </div>
+        
+        <div id="OrderDetail" class="page">
+            <h2>訂單詳情</h2>
+            <div id="orderDetailContent">
+                <p>載入中...</p>
+            </div>
+            <button onclick="showPage('Order')">返回</button>
+        </div>
+
+        <div id="payment" class="page">
+            <h2>揪團資料 (團員列表)</h2>
+
+            <div class="paylist-header">
+                <div class="col-name">姓名</div>
+                <div class="col-item">品項</div>
+                <div class="col-amount">金額</div>
+                <div class="col-paid">已付</div>
+                <div class="col-note">備註</div>
+            </div>
+
+            <div id="payListContainer">
+                <button class="primary" id="editPayListButton" onclick="toggleEditMode(true)">修改</button>
+    <button class="primary" id="savePayListButton" onclick="savePayList()" style="display: none; background-color: #2ecc71;">儲存修改</button>
+    <button onclick="showPage('Order')">返回</button>
+            </div>
+
+            <button class="primary" id="editPayListButton" onclick="toggleEditMode(true)" style="margin-right: 10px;">修改</button>
+            <button class="primary" id="savePayListButton" onclick="savePayList()" style="margin-right: 10px; display: none;">儲存所有修改</button>
+            <button onclick="showPage('OrderDetail')">返回訂單詳情</button>
+        </div>
+        
+        <div id="JoinOrder" class="page">
+            <h2>我加的單 (我的填單紀錄)</h2>
+            <div id="myJoinedOrderList">
+                <p style="color: #6c757d;">載入中...</p>
+            </div>
+          
+        </div>
+
+        <div id="HistoryRecord" class="page">
+            <h2>歷史紀錄 (已結束)</h2>
+            <div id="myHistoryOrderList">
+                <p style="color: #6c757d;">載入已結束訂單...</p>
+            </div>
+        
+        </div>
+
+        <div id="OrderDetail1" class="page">
+            <h2>歷史訂單詳情 (閱讀模式)</h2>
+            <div id="historyOrderDetailContent">
+                <p>此處顯示已結束訂單的詳細資訊。</p>
+            </div>
+            <button onclick="showPage('HistoryRecord')">返回</button>
+        </div>
+
+        <div id="SearchService" class="page">
+            <h2>搜尋</h2>
+            <input type="text" id="searchKeyword" placeholder="關鍵字: String">
+            <button class="primary" onclick="searchOrder()">搜尋</button>
+      
+        </div>
+
+        <div id="SearchService1" class="page">
+            <h2>搜尋結果</h2>
+            <div id="searchResultList">
+                <p style="color: #6c757d;">請在上一個頁面輸入關鍵字進行搜尋。</p>
+            </div>
+            <button onclick="showPage('SearchService')">返回搜尋</button>
+        </div>
+
+        
+        <div id="SearchService2" class="page">
+            <h2>加揪密碼</h2>
+            <p id="joinOrderTitle"></p>
+            <p>請輸入加入密碼。</p>
+            <div class="password-container">
+    <input type="password" id="joinPasswordInput" placeholder="密碼">
+    <button type="button" class="toggle-password" onclick="togglePasswordVisibility('joinPasswordInput')">
+        <svg class="eye-icon" viewBox="0 0 24 24"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.82l2.92 2.92c1.51-1.26 2.7-2.89 3.44-4.74-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/></svg>
+    </button>
+</div>
+            <button class="primary" onclick="checkJoinPassword()">加入並查看訂單</button>
+            <button onclick="showPage('SearchService1')">返回搜尋結果</button>
+        </div>
+
+        <div id="SearchService3" class="page">
+            <h2>訂單資訊 (確認頁)</h2>
+            <div id="joiningOrderDetail">
+                <p><strong>標題:</strong> <span id="infoTitle"></span></p>
+                <p><strong>店家:</strong> <span id="infoHost"></span></p>
+                <p><strong>截止時間:</strong> <span id="infoDeadline"></span></p>
+                <p><strong>備註:</strong> <span id="infoDescription"></span></p>
+                <p><strong>菜單:</strong> <span id="infoDescription"></span></p>
+
+                <div id="infoMenuImageContainer" style="margin-top: 10px;">
+                    <img id="infoMenuImage" src="" style="display:none;">
+                </div>
+            </div>
+            <button class="primary" onclick="showPage('SearchService4')">填單</button>
+            <button onclick="showPage('SearchService1')">返回搜尋結果</button>
+        </div>
+
+        <div id="SearchService4" class="page">
+            <h2>填單頁面 (加入訂單)</h2>
+            <h3>加入訂單：<span id="fillOrderTitle"></span></h3>
+            <p>請填寫您的訂購資訊：</p>
+            <input type="text" id="fillName" placeholder="姓名: String" value="">
+            <input type="text" id="fillPhone" placeholder="電話: String">
+            <input type="text" id="fillItem" placeholder="品項: String">
+            <input type="text" id="fillAmount" placeholder="金額: String">
+            <input type="text" id="fillNote" placeholder="備註/特殊需求 (例如：加珍珠、去冰)">
+            <button class="primary" onclick="submitJoinOrder()">送出</button>
+            <button onclick="showPage('SearchService3')">返回訂單資訊</button>
+        </div>
+
+        <div id="SearchService5" class="page">
+            <h2>編輯我的填單資料</h2>
+            <h3>訂單：<span id="editFillOrderTitle"></span></h3>
+            <p>您可以修改您的品項、金額、電話及備註：</p>
+            <input type="hidden" id="editEntryId"> 
+            <input type="text" id="editFillName" placeholder="姓名: String (不可改)" readonly>
+            <input type="text" id="editFillPhone" placeholder="電話: String">
+            <input type="text" id="editFillItem" placeholder="品項: String">
+            <input type="text" id="editFillAmount" placeholder="金額: String">
+            <input type="text" id="editFillNote" placeholder="備註/特殊需求">
+            
+                        <div style="margin-top: 20px; display: flex; justify-content: space-between;">
+                <button class="delete-button" id="deleteEntryButton" onclick="deleteJoinedEntry(parseInt(document.getElementById('editEntryId').value))">
+                    🗑️ 刪除
+                </button>
+                <div>
+                    <button class="primary" onclick="submitEditedJoinedEntry()">儲存修改</button>
+                    <button onclick="showPage('JoinOrder')">取消並返回</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="NewOrderPage" class="page">
+            <h2>新增揪團 (填單頁面)</h2>
+            <p>請填寫新的揪團訂單資訊：</p>
+            <input type="text" id="newOrderTitle" placeholder="標題(必填)">
+            <input type="text" id="newOrderHost" placeholder="主辦/店家">
+            <label for="newOrderDeadline" style="margin-top: 5px; display: block;">截止時間 **(必填)**</label>
+            <input type="datetime-local" id="newOrderDeadline">
+            <input type="text" id="newOrderContact" placeholder="聯絡電話">
+            <input type="text" id="newOrderContact2" placeholder="幫湊免運 (例如：滿 500 免運)">
+            <input type="text" id="newOrderContact3" placeholder="其他聯絡方式 (例如：Line ID)"> 
+            <div class="password-container">
+    <input type="password" id="newOrderPassword" placeholder="密碼">
+    <button type="button" class="toggle-password" onclick="togglePasswordVisibility('newOrderPassword')">
+        <svg class="eye-icon" viewBox="0 0 24 24"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.82l2.92 2.92c1.51-1.26 2.7-2.89 3.44-4.74-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/></svg>
+    </button>
+</div>
+            <textarea id="newOrderDescription" placeholder="備註"></textarea>
+            <label for="newOrderImage" style="margin-top: 10px; display: block;">上傳菜單圖片</label>
+            <input type="file" id="newOrderImage" accept="image/*" onchange="previewMenuImage(event)">
+            <div id="imagePreviewContainer" style="margin-top: 10px;">
+                <img id="menuImagePreview" src="" style="max-width: 100%; display: none; border-radius: 8px;">
+            </div>
+
+            <button class="primary" onclick="saveNewOrder()">儲存</button>
+            <button onclick="cancelNewOrder()">取消</button>
+        </div>
+        
+        <div id="Member" class="page">
+            <h2>個人設定</h2>
+            <button onclick="showPage('Page')">用戶資料 (進入)</button>
+            <button onclick="logout()">登出</button>
+            <button onclick="showPage('MainPage')">返回</button>
+        </div>
+
+        <div id="Page" class="page">
+            <h2>用戶資料頁面</h2>
+            <input type="text" id="userName" placeholder="姓名: String">
+            <input type="text" id="userPhone" placeholder="電話: String">
+            <input type="email" id="userEmail" placeholder="電子郵件: String">
+            <button class="primary" onclick="saveUserProfile()">儲存</button>
+            <button onclick="showPage('Member')">返回</button>
+        </div>
+
+    </div>
+
+    <button class="fab-button" id="fabAddButton" onclick="showPage('NewOrderPage')" style="display:none;">
+    <span class="fab-icon">+</span>
+</button>
+
+<div id="SearchService3" class="page">
+    <h2>訂單資訊 (確認頁)</h2>
+
+    <div id="joiningOrderDetail">
+        <p><strong>標題:</strong> <span id="infoTitle"></span></p>
+        <p><strong>店家:</strong> <span id="infoHost"></span></p>
+        <p><strong>截止時間:</strong> <span id="infoDeadline"></span></p>
+
+        <!-- 菜單 / 備註文字 -->
+        <p><strong>菜單 :</strong><br>
+            <span id="infoDescription"></span>
+        </p>
+
+        <!-- ⭐ 菜單圖片（最後一行） -->
+        <div id="infoMenuImageContainer" style="margin-top: 12px;">
+            <img id="infoMenuImage"
+                 style="max-width:100%; border-radius:8px; display:none;">
+        </div>
+    </div>
+
+    <button class="primary" onclick="showPage('SearchService4')">填單</button>
+    <button onclick="showPage('SearchService1')">返回搜尋結果</button>
+</div>
+
+    <script>
+        let currentUser = null;
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbypcDATLof8Apc2Cp1tq5dHRQGjmkmdCnYv8zE5EJwijqmPVDyBwDFDDGQcCmxz7b3pmg/exec'; 
+      // ✅ 新增：從 localStorage 還原登入者
+        const savedUser = localStorage.getItem('currentUser');
+        if (savedUser) {
+          currentUser = JSON.parse(savedUser);
+        }
+
+        const userDatabase = new Map();
+        userDatabase.set("admin", { account: "admin", password: "123", name: "系統管理員", phone: "0912345678", email: "admin@example.com" });
+
+        const orderList = [];
+        let isEditing = false; 
+        
+        // 儲存用戶加入的訂單紀錄 (joinedOrderEntries)
+        const joinedOrderEntries = []; 
+        
+        let selectedOrderForJoining = null;
+        // 儲存目前在 OrderDetail 或 payment 頁面查看的訂單索引
+        let currentViewingOrderIndex = -1; 
+
+        // ====== 上傳菜單 ======
+        // 圖片預覽功能
+function previewMenuImage(event) {
+    const reader = new FileReader();
+    reader.onload = function() {
+        const output = document.getElementById('menuImagePreview');
+        output.src = reader.result;
+        output.style.display = 'block';
+    };
+    if (event.target.files[0]) {
+        reader.readAsDataURL(event.target.files[0]);
+    }
+}
+
+// 修改 saveNewOrder 函數 [cite: 706]
+function saveNewOrder() {
+    // 1. 檢查登入狀態與標題
+    if (!currentUser || !currentUser.name) {
+        alert('偵測不到用戶登入資訊，請重新登入');
+        showPage('User');
+        return;
+    }
+
+    const title = document.getElementById('newOrderTitle').value.trim();
+    if (!title) {
+        alert('請填寫訂單標題');
+        return;
+    }
+
+    // 2. 建立/更新資料物件
+    const orderData = {
+        // 修改則延用舊 ID，新增則產生新 ID
+        id: (currentViewingOrderIndex !== -1) ? orderList[currentViewingOrderIndex].id : Date.now(),
+        title: title,
+        hostName: currentUser.name.trim(), // ⭐ 確保這裡一定有抓到名字
+        host: document.getElementById('newOrderHost')?.value || '未填',
+        deadline: document.getElementById('newOrderDeadline')?.value || '',
+        description: document.getElementById('newOrderDescription')?.value || '無備註',
+        menuImageUrl: document.getElementById('menuImagePreview').src || null,
+        
+        // 保留其他欄位
+        contact: document.getElementById('newOrderContact')?.value || '無',
+        contact2: document.getElementById('newOrderContact2')?.value || '無',
+        contact3: document.getElementById('newOrderContact3')?.value || '無',
+        password: document.getElementById('newOrderPassword')?.value || '',
+        
+        publishTime: (currentViewingOrderIndex !== -1) ? orderList[currentViewingOrderIndex].publishTime : new Date().toLocaleString(),
+        members: (currentViewingOrderIndex !== -1) ? orderList[currentViewingOrderIndex].members : []
+    };
+
+    // 3. 執行儲存
+    if (currentViewingOrderIndex !== -1) {
+        orderList[currentViewingOrderIndex] = orderData;
+        alert(`訂單「${title}」已更新完成`);
+    } else {
+        orderList.push(orderData);
+        alert(`新的揪團「${title}」已成功儲存`);
+    }
+
+    // 4. 重置與清空
+    currentViewingOrderIndex = -1;
+    resetFormFields(); // 請確認有建立此清空函數
+    showPage('Order');
+}
+function handleRegister(account, password) {
+  fetch(scriptURL, {
+    method: 'POST',
+    mode: 'no-cors', // 解決跨網域問題
+    body: JSON.stringify({
+      type: "register",
+      account: account,
+      password: password
+    })
+  }).then(() => alert("註冊資料已存入後台！"));
+}
+function handleOrder(name, phone, item, amount) {
+  fetch(scriptURL, {
+    method: 'POST',
+    mode: 'no-cors',
+    body: JSON.stringify({
+      type: "order",
+      name: name,
+      phone: phone,
+      item: item,
+      amount: amount
+    })
+  }).then(() => alert("訂單已存入後台！"));
+}
+// 輔助清空函數
+function resetFormFields() {
+    const ids = ['newOrderTitle', 'newOrderHost', 'newOrderDeadline', 'newOrderContact', 'newOrderContact2', 'newOrderContact3', 'newOrderPassword', 'newOrderDescription'];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    const img = document.getElementById('menuImagePreview');
+    if (img) { img.style.display = 'none'; img.src = ''; }
+}
+
+        // ====== 輔助函數：檢查訂單是否已過期 ======
+        function isOrderExpired(order) {
+            if (!order.deadline) {
+                return false; 
+            }
+            const deadlineTime = new Date(order.deadline).getTime();
+            const currentTime = new Date().getTime();
+            return currentTime > deadlineTime;
+        }
+        
+        // ====== 輔助函數：根據 ID 查找填單紀錄的 Index ======
+        function getEntryIndexById(entryId) {
+            return joinedOrderEntries.findIndex(entry => entry.entryData.id === entryId);
+        }
+
+        // ====== 函數：動態渲染「我加的單」頁面 ======
+function renderJoinedOrderList() {
+    const listContainer = document.getElementById('myJoinedOrderList');
+    listContainer.innerHTML = '';
+    listContainer.className = 'list-grid';
+
+    if (joinedOrderEntries.length === 0) {
+        listContainer.innerHTML =
+            '<p style="color:#6c757d;">目前沒有加入任何訂單紀錄。</p>';
+        return;
+    }
+
+    joinedOrderEntries.slice().reverse().forEach((entry) => {
+        const order = entry.order;
+        const entryData = entry.entryData;
+        const expired = isOrderExpired(order);
+        const statusText = expired ? '已結束' : '進行中';
+        const canEdit = !expired;
+        const entryId = entryData.id;
+
+        const card = document.createElement('div');
+        card.className = 'order-card';
+
+        const noteDisplay = entryData.note
+            ? `<br><strong>備註：</strong>${entryData.note}`
+            : '';
+
+        card.innerHTML = `
+            <div>
+                <h3>[${statusText}] ${order.title}</h3>
+                <div class="order-meta">主揪：${order.hostName}</div>
+                <div class="order-desc">
+                    <strong>我的品項：</strong>${entryData.item}
+                    （$${entryData.amount}）
+                    ${noteDisplay}<br>
+                    <strong>截止時間：</strong>
+                    ${order.deadline ? new Date(order.deadline).toLocaleString() : '未設定'}
+                </div>
+            </div>
+
+            <div class="card-actions">
+                <button class="btn-detail"
+                    onclick="alert(
+                        '詳細內容\\n' +
+                        '品項：${entryData.item}\\n' +
+                        '金額：$${entryData.amount}\\n' +
+                        '電話：${entryData.phone || '未填'}\\n' +
+                        '備註：${entryData.note || '無'}'
+                    )">
+                    查看我的填單
+                </button>
+
+                ${
+                    canEdit
+                    ? `<button class="btn-edit"
+                        onclick="showEditJoinedEntryPage(${entryId})">
+                        修改填單
+                       </button>`
+                    : `<button class="btn-edit" disabled style="opacity:.5;cursor:default;">
+                        已結束
+                       </button>`
+                }
+            </div>
+        `;
+
+        listContainer.appendChild(card);
+    });
+}
+
+        // ====== 函數：顯示修改填單頁面 ======
+        function showEditJoinedEntryPage(entryId) { 
+            const index = getEntryIndexById(entryId); 
+            const entry = joinedOrderEntries[index];
+
+            if (index === -1 || !entry) {
+                alert("錯誤：找不到該填單紀錄。");
+                return;
+            }
+
+            // 將資料載入到編輯頁面
+            document.getElementById('editEntryId').value = entryId; 
+            document.getElementById('editFillOrderTitle').textContent = entry.order.title;
+            document.getElementById('editFillName').value = entry.entryData.name; 
+            document.getElementById('editFillPhone').value = entry.entryData.phone;
+            document.getElementById('editFillItem').value = entry.entryData.item;
+            document.getElementById('editFillAmount').value = entry.entryData.amount;
+            document.getElementById('editFillNote').value = entry.entryData.note || ''; 
+
+            showPage('SearchService5');
+        }
+
+        // ====== 函數：刪除加單紀錄 (新增) ======
+        function deleteJoinedEntry(entryId) {
+            const index = getEntryIndexById(entryId); 
+            
+            if (index === -1 || !joinedOrderEntries[index]) {
+                alert("錯誤：無效的填單紀錄 ID 或找不到紀錄。");
+                showPage('JoinOrder');
+                return;
+            }
+
+            const entry = joinedOrderEntries[index];
+            const orderTitle = entry.order.title;
+            
+            if (!confirm(`您確定要刪除在訂單「${orderTitle}」中的這筆加單紀錄嗎？此操作無法復原。`)) {
+                return;
+            }
+
+            // 1. 從 joinedOrderEntries (我加的單) 中刪除
+            joinedOrderEntries.splice(index, 1);
+            
+            // 2. 同步從 orderList (我揪的單) 中對應的 members 陣列刪除
+            const correspondingOrder = entry.order;
+            if (correspondingOrder && correspondingOrder.members) {
+                const memberIndex = correspondingOrder.members.findIndex(m => m.id === entryId);
+                if (memberIndex !== -1) {
+                    correspondingOrder.members.splice(memberIndex, 1);
+                }
+            }
+
+            alert(`訂單「${orderTitle}」的填單紀錄已成功刪除！`);
+            showPage('JoinOrder'); 
+        }
+
+        // ====== 函數：儲存已修改的填單資料 ======
+        function submitEditedJoinedEntry() {
+            const entryId = parseInt(document.getElementById('editEntryId').value); 
+            const index = getEntryIndexById(entryId); 
+            
+            if (index === -1 || !joinedOrderEntries[index]) {
+                alert("錯誤：無效的填單紀錄 ID 或找不到紀錄。");
+                return;
+            }
+
+            const newPhone = document.getElementById('editFillPhone').value;
+            const newItem = document.getElementById('editFillItem').value;
+            const newAmount = document.getElementById('editFillAmount').value;
+            const newNote = document.getElementById('editFillNote').value; 
+
+            if (!newItem || !newAmount) {
+                alert("請填寫品項和金額才能儲存修改。");
+                return;
+            }
+
+            // 1. 更新 joinedOrderEntries 中的數據 (我加的單)
+            joinedOrderEntries[index].entryData.phone = newPhone;
+            joinedOrderEntries[index].entryData.item = newItem;
+            joinedOrderEntries[index].entryData.amount = parseFloat(newAmount) || 0;
+            joinedOrderEntries[index].entryData.note = newNote; 
+            
+            // 2. 同步更新到 orderList 中對應的團員數據 (我揪的單)
+            const correspondingOrder = joinedOrderEntries[index].order;
+            if (correspondingOrder && correspondingOrder.members) {
+                const memberIndex = correspondingOrder.members.findIndex(m => m.id === entryId);
+                if (memberIndex !== -1) {
+                    correspondingOrder.members[memberIndex].item = newItem;
+                    correspondingOrder.members[memberIndex].amount = parseFloat(newAmount) || 0;
+                    correspondingOrder.members[memberIndex].phone = newPhone;
+                    correspondingOrder.members[memberIndex].note = newNote;
+                }
+            }
+
+            alert(`訂單「${joinedOrderEntries[index].order.title}」的填單資料已成功更新！`);
+            
+            showPage('JoinOrder');
+        }
+
+        // ====== 函數：動態渲染「我揪的單」頁面 ======
+      function renderOrderList() {
+    const container = document.getElementById('myOrderList');
+    container.innerHTML = '';
+    container.className = 'list-grid';
+
+    
+        
+    const activeOrders = orderList.filter(o => !isOrderExpired(o));
+
+    if (activeOrders.length === 0) {
+        container.innerHTML =
+            '<p style="color:#6c757d;">目前沒有你建立的進行中訂單。</p>';
+        return;
+    }
+
+    
+    container.innerHTML = '';
+    
+    activeOrders.forEach(order => {
+        const index = orderList.indexOf(order);
+
+        const card = document.createElement('div');
+        card.className = 'order-card';
+
+        // 修改後的 renderOrderList 函數片段
+card.innerHTML = `
+    <div>
+        <h3>${order.title}</h3>
+        <div class="order-meta">登記時間：${order.publishTime}</div>
+        <div class="order-desc">
+             主揪：${order.hostName}<br>
+             截止：${new Date(order.deadline).toLocaleString()}
+        </div>
+    </div>
+    <div class="card-actions">
+      <button class="btn-detail" style="background-color: #2ecc71;" onclick="viewOrderMembers(${index})">團員資料</button>
+      <button class="btn-edit" onclick="editOrder(${index})">修改</button>
+      <button class="btn-edit" style="background-color: #e74c3c;" onclick="deleteOrder(${index})">刪除</button>
+    </div>
+`;
+        container.appendChild(card);
+    });
+}
+
+        
+        // 頁面切換邏輯
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+            
+            if (pageId === 'Order') {
+                renderOrderList(); 
+            } else if (pageId === 'JoinOrder') { 
+                renderJoinedOrderList(); 
+            } else if (pageId === 'payment') {
+                isEditing = false; 
+                renderPayList(); 
+            } else if (pageId === 'HistoryRecord') {
+                renderHistoryList(); 
+            } else if (pageId === 'SearchService4') {
+                // 進入填單頁面時，預填使用者名稱/電話
+                if (currentUser) {
+                    document.getElementById('fillName').value = currentUser.name || '';
+                    document.getElementById('fillPhone').value = currentUser.phone || '';
+                }
+                if (selectedOrderForJoining) {
+                     document.getElementById('fillOrderTitle').textContent = selectedOrderForJoining.title;
+                }
+            } else if (pageId === 'Page') {
+                // 載入用戶資料
+                if (currentUser) {
+                    document.getElementById('userName').value = currentUser.name || '';
+                    document.getElementById('userPhone').value = currentUser.phone || '';
+                    document.getElementById('userEmail').value = currentUser.email || '';
+                }
+            }
+            
+            const isMainContent = ['MainPage', 'Order', 'JoinOrder', 'HistoryRecord', 'SearchService', 'Member', 'OrderDetail', 'payment', 'OrderDetail2', 'payment2', 'OrderDetail1', 'payment1', 'Page', 'SearchService1', 'SearchService2', 'SearchService3', 'SearchService4', 'NewOrderPage', 'SearchService5'].includes(pageId); 
+            document.getElementById('mainHeader').style.display = isMainContent ? 'flex' : 'none';
+
+            const fabButton = document.getElementById('fabAddButton');
+            const pagesToShowFab = ['MainPage', 'Order', 'JoinOrder', 'HistoryRecord', 'SearchService', 'SearchService1', 'OrderDetail', 'payment', 'OrderDetail2', 'payment2', 'OrderDetail1', 'payment1', 'Member', 'Page'];
+            const showFab = currentUser && pagesToShowFab.includes(pageId);
+            fabButton.style.display = showFab ? 'block' : 'none';
+
+            if (!currentUser && pageId !== 'User' && pageId !== 'UserProfile') {
+                showPage('User');
+                alert('請先登入！');
+            }
+        }
+      function login() 
+   {
+    const account = document.getElementById('loginAccount').value;
+    const password = document.getElementById('loginPassword').value;
+
+    if (!account || !password) 
+    {
+        alert('請輸入帳號和密碼。');
+        return;
+    }
+
+    if (!userDatabase.has(account)) 
+    {
+        alert('登入失敗：帳號不存在。');
+        return;
+    }
+
+    const userData = userDatabase.get(account);
+
+    if (userData.password === password)
+    {
+        currentUser = userData;
+
+        // ✅ 新增：存進 localStorage（關鍵）
+        localStorage.setItem('currentUser', JSON.stringify(userData));
+
+        alert(`登入成功！歡迎 ${userData.name}`);
+        showPage('MainPage');
+    } 
+    else
+    {
+        alert('登入失敗：密碼錯誤。');
+    }
+   }
+
+        function register() {
+            const newAccount = document.getElementById('registerAccount').value; 
+            const newPassword = document.getElementById('registerPassword').value; 
+            const newName = document.getElementById('registerName').value; 
+            const phone = document.querySelector('#UserProfile input[placeholder="電話: String"]').value;
+            const email = document.querySelector('#UserProfile input[placeholder="電子郵件: String"]').value;
+
+            if (!newAccount || !newPassword || !newName) 
+            {
+                alert("註冊失敗：帳號、密碼和姓名都必須填寫。");
+                return;
+            }
+
+            if (userDatabase.has(newAccount)) 
+            {
+                alert("註冊失敗：此帳號已被註冊。");
+                return;
+            }
+            userDatabase.set(newAccount, 
+            {
+                account: newAccount,
+                password: newPassword,
+                name: newName,
+                phone: phone,
+                email: email
+            });
+    
+            alert(`註冊成功！帳號：${newAccount}`);
+            showPage('User'); 
+        }
+        
+     function saveUserProfile() {
+    if (currentUser) {
+        currentUser.name = document.getElementById('userName').value;
+        currentUser.phone = document.getElementById('userPhone').value;
+        currentUser.email = document.getElementById('userEmail').value;
+
+        // 存回 userDatabase
+        userDatabase.set(currentUser.account, currentUser);
+
+        // ⭐ 一定要加：同步更新 localStorage（關鍵）
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+        alert('個人資料已儲存！');
+    }
+}
+
+      function logout() {
+    currentUser = null;
+
+    // ✅ 新增：清除 localStorage 的登入者
+    localStorage.removeItem('currentUser');
+
+    alert('登出成功。');
+    showPage('User');
+}
+
+        // ====== 函數：搜尋訂單 (修正：只搜尋標題的連續子字串) ======
+      function searchOrder() {
+    const keyword = document.getElementById('searchKeyword').value.trim().toLowerCase();
+    const resultList = document.getElementById('searchResultList');
+    resultList.innerHTML = '';
+    resultList.className = 'list-grid';
+
+    if (keyword === '') {
+        alert('請輸入搜尋關鍵字。');
+        return;
+    }
+
+    const searchResults = orderList.filter(order =>
+        order.title.toLowerCase().includes(keyword)
+    );
+
+    if (searchResults.length === 0) {
+        resultList.innerHTML =
+            `<p style="color:#6c757d;">沒有找到與「${keyword}」相關的訂單。</p>`;
+    } else {
+        searchResults.forEach(order => {
+            const isExpired = isOrderExpired(order);
+            const statusText = isExpired ? '已結束' : '進行中';
+            const buttonText = isExpired ? '查看詳情' : '加入訂單';
+
+            const card = document.createElement('div');
+            card.className = 'order-card';
+
+            card.onclick = function () {
+                if (isExpired) {
+                    showHistoryOrderDetail(orderList.indexOf(order));
+                } else {
+                    selectedOrderForJoining = order;
+                    document.getElementById('joinOrderTitle').textContent =
+                        `訂單：${order.title}`;
+                    document.getElementById('joinPasswordInput').value = '';
+                    showPage('SearchService2');
+                }
+            };
+
+            card.innerHTML = `
+                <div>
+                    <h3>[${statusText}] ${order.title}</h3>
+                    <div class="order-meta">
+                        店家：${order.host}
+                    </div>
+                    <div class="order-desc">
+                        截止時間：
+                        ${order.deadline
+                            ? new Date(order.deadline).toLocaleDateString()
+                            : '未設定'}
+                    </div>
+                </div>
+
+                <div class="card-actions">
+                    <button class="btn-detail"
+                        onclick="event.stopPropagation(); this.parentNode.parentNode.click();">
+                        ${buttonText}
+                    </button>
+                </div>
+            `;
+
+            resultList.appendChild(card);
+        });
+    }
+
+    showPage('SearchService1');
+}
+
+        function checkJoinPassword() {
+    const pwdInput = document.getElementById('joinPasswordInput').value;
+    
+    // 1. 驗證密碼 (對比 order 物件中的 password)
+    // 注意：請確保您的 saveNewOrder 有儲存 password 欄位
+    if (pwdInput === selectedOrderForJoining.password || selectedOrderForJoining.password === "") {
+        
+        // 2. 填充文字資訊
+        document.getElementById('infoTitle').textContent = selectedOrderForJoining.title;
+        document.getElementById('infoHost').textContent = selectedOrderForJoining.host || '未填';
+        document.getElementById('infoDeadline').textContent = selectedOrderForJoining.deadline ? new Date(selectedOrderForJoining.deadline).toLocaleString() : '未設定';
+        document.getElementById('infoDescription').textContent = selectedOrderForJoining.description || '無備註';
+        
+        // 3. ⭐ 顯示圖片的核心邏輯 ⭐
+        const infoImg = document.getElementById('infoMenuImage');
+        
+        if (selectedOrderForJoining.menuImageUrl) {
+            // 如果訂單有圖片數據 (Base64 或 URL)
+            infoImg.src = selectedOrderForJoining.menuImageUrl;
+            infoImg.style.display = 'block'; // 顯示圖片
+            infoImg.style.maxWidth = '100%'; // 確保不超出邊框
+            infoImg.style.marginTop = '15px';
+        } else {
+            // 如果沒有圖片
+            infoImg.src = '';
+            infoImg.style.display = 'none'; // 隱藏圖片標籤
+        }
+        
+        // 4. 切換頁面
+        showPage('SearchService3');
+    } else {
+        alert("密碼錯誤，請重新輸入。");
+    }
+}
+        
+        function showOrderInfo(order) {
+    document.getElementById('infoTitle').textContent = order.title || '無';
+    document.getElementById('infoHost').textContent = order.host || '無';
+    document.getElementById('infoDeadline').textContent =
+        order.deadline ? new Date(order.deadline).toLocaleString() : '未設定';
+
+    document.getElementById('infoDescription').innerHTML =
+        order.description ? order.description.replace(/\n/g, '<br>') : '無';
+
+    // ⭐ 菜單圖片顯示（重點）
+    const img = document.getElementById('infoMenuImage');
+    if (order.menuImageUrl) {
+        img.src = order.menuImageUrl;
+        img.style.display = 'block';
+    } else {
+        img.style.display = 'none';
+    }
+
+    showPage('SearchService3');
+}
+
+        // ====== 函數：送出加入訂單的資料 ======
+        function submitJoinOrder() {
+            if (!selectedOrderForJoining) {
+                alert("錯誤：未選擇任何訂單，無法送出。");
+                showPage('SearchService1');
+                return;
+            }
+
+            const name = document.getElementById('fillName').value;
+            const phone = document.getElementById('fillPhone').value;
+            const item = document.getElementById('fillItem').value;
+            const amount = document.getElementById('fillAmount').value;
+            const note = document.getElementById('fillNote').value; 
+
+            if (!name || !item || !amount) {
+                alert("請填寫姓名、品項和金額才能送出。");
+                return;
+            }
+
+            const entryData = {
+                id: Date.now(), 
+                name: name,
+                phone: phone,
+                item: item,
+                amount: parseFloat(amount) || 0,
+                note: note || '', 
+                isPaid: false, 
+                joinTime: new Date().toLocaleString()
+            };
+            
+            // 1. 將填單資料推入到「訂單物件」自己的團員陣列中
+            if (!selectedOrderForJoining.members) {
+                 selectedOrderForJoining.members = [];
+            }
+            selectedOrderForJoining.members.push(entryData);
+
+            // 2. 將填單資料同步到 joinedOrderEntries (我加的單)
+            joinedOrderEntries.push({
+                order: selectedOrderForJoining,
+                entryData: entryData
+            });
+
+            console.log(`已將新團員資料提交給訂單: ${selectedOrderForJoining.title}`, entryData);
+
+            // 清空欄位
+            document.getElementById('fillItem').value = '';
+            document.getElementById('fillAmount').value = '';
+            document.getElementById('fillNote').value = ''; 
+            
+            alert(`成功加入訂單「${selectedOrderForJoining.title}」！您的填單紀錄已同步到「我加的單」。`);
+            selectedOrderForJoining = null; // 清空選擇狀態
+            showPage('JoinOrder'); 
+        }
+
+        
+      function renderHistoryList() {
+    const listContainer = document.getElementById('myHistoryOrderList');
+    if (!listContainer) return; // 防呆：找不到容器就不執行
+
+    listContainer.innerHTML = ''; // 清空內容
+    listContainer.className = 'list-grid';
+
+    // 1. 篩選出已結束的訂單
+    const expiredOrders = orderList.filter(order => isOrderExpired(order));
+
+    // 2. 如果沒有歷史紀錄，顯示提示文字
+    if (expiredOrders.length === 0) {
+        listContainer.innerHTML = '<p style="color:#6c757d; text-align:center; width:100%;">目前沒有已結束的歷史訂單紀錄。</p>';
+        return;
+    }
+
+    // 3. 執行渲染 (使用 slice().reverse() 讓最新的歷史紀錄排在最前面)
+    expiredOrders.slice().reverse().forEach((order) => {
+        // 獲取該訂單在原始 orderList 中的索引，確保「查看」按鈕能抓到正確資料
+        const originalIndex = orderList.indexOf(order);
+        
+        const card = document.createElement('div');
+        card.className = 'order-card'; // 統一使用你的 order-card 樣式
+        
+        // 點擊整個卡片也能查看詳情
+        card.onclick = function() { showHistoryOrderDetail(originalIndex); };
+
+        card.innerHTML = `
+            <div>
+                <h3><span style="color:#e74c3c;">[已結束]</span> ${order.title}</h3>
+                <div class="order-meta">
+                    主揪：${order.hostName || '未知'} ｜ 店家：${order.host || '未填'}
+                </div>
+                <div class="order-desc">
+                    截止時間：${order.deadline ? new Date(order.deadline).toLocaleString() : '未設定'}
+                </div>
+            </div>
+            <div class="card-actions">
+                <button class="btn-detail" 
+                    onclick="event.stopPropagation(); showHistoryOrderDetail(${originalIndex})">
+                    查看歷史詳情
+                </button>
+            </div>
+        `;
+        listContainer.appendChild(card);
+    });
+}
+        function showHistoryOrderDetail(index) {
+            const order = orderList[index];
+            const detailContainer = document.getElementById('historyOrderDetailContent');
+
+            detailContainer.innerHTML = `
+                <p><strong>標題:</strong> ${order.title}</p>
+                <p><strong>主辦/店家:</strong> ${order.host}</p>
+                <p><strong>發布時間:</strong> ${order.publishTime}</p>
+                <p><strong>截止時間:</strong> ${order.deadline ? new Date(order.deadline).toLocaleString() : '未設定'}</p>
+                <p><strong>聯絡電話:</strong> ${order.contact}</p>
+                <p><strong>幫湊免運資訊:</strong> ${order.contact2}</p>
+                <p><strong>其他聯絡方式:</strong> ${order.contact3}</p>
+                <p><strong>菜單/備註:</strong> <br>${order.description.replace(/\n/g, '<br>')}</p>
+                <hr>
+                <p style="color: #dc3545; font-weight: bold;">此訂單已結束，無法加入或編輯。</p>
+            `;
+            showPage('OrderDetail1');
+        }
+
+        function showOrderDetail(index) {
+    currentViewingOrderIndex = index;
+    const order = orderList[index];
+    const detailContainer = document.getElementById('orderDetailContent');
+
+    if (!order) {
+        detailContainer.innerHTML = '<p style="color:red;">找不到訂單資料</p>';
+        showPage('OrderDetail');
+        return;
+    }
+
+    const imageHtml = order.menuImageUrl
+        ? `<div style="margin:15px 0;">
+               <img src="${order.menuImageUrl}"
+                    style="max-width:100%; border-radius:8px;">
+           </div>`
+        : '<p style="color:#888;">（無菜單圖片）</p>';
+
+    const descriptionHtml = order.description
+        ? order.description.replace(/\n/g, '<br>')
+        : '無';
+
+    detailContainer.innerHTML = `
+        <p><strong>標題：</strong>${order.title || '無'}</p>
+        <p><strong>主揪：${order.hostName}
+        <p><strong>店家：</strong>${order.host || '無'}</p>
+        <p><strong>發布時間：</strong>${order.publishTime || '無'}</p>
+        <p><strong>截止時間：</strong>
+            ${order.deadline ? new Date(order.deadline).toLocaleString() : '未設定'}
+        </p>
+        <p><strong>聯絡電話：</strong>${order.contact || '無'}</p>
+        <p><strong>幫湊免運資訊：</strong>${order.contact2 || '無'}</p>
+        <p><strong>其他聯絡方式：</strong>${order.contact3 || '無'}</p>
+        <p><strong>加單密碼：</strong>${order.password || '無'}</p>
+
+        <hr>
+
+        <p><strong>菜單 / 備註：</strong><br>${descriptionHtml}</p>
+
+        ${imageHtml}
+
+        <hr>
+
+        <button class="primary" onclick="showPage('payment')">
+            查看揪團資料（團員 / 付款狀態）
+        </button>
+    `;
+
+    showPage('OrderDetail');
+}
+
+        
+        // ====== 函數：渲染團員列表 (我揪的單) ======
+        function renderPayList() {
+    const container = document.getElementById('payListContainer');
+    const order = orderList[currentViewingOrderIndex];
+    if (!order) return;
+
+    container.innerHTML = '';
+    const readOnlyAttr = isEditing ? '' : 'readonly';
+
+    order.members.forEach((member, idx) => {
+        const row = document.createElement('div');
+        row.className = 'paylist-row';
+        row.innerHTML = `
+            <div class="col-name">${member.name}</div>
+            <div class="col-item">
+                <input type="text" id="inputItem_${idx}" value="${member.item}" ${readOnlyAttr}>
+            </div>
+            <div class="col-amount">
+                <input type="number" id="inputAmount_${idx}" value="${member.amount}" ${readOnlyAttr}>
+            </div>
+            <div class="col-paid">
+                <input type="checkbox" id="inputPaid_${idx}" ${member.paid ? 'checked' : ''} ${isEditing ? '' : 'disabled'}>
+            </div>
+            <div class="col-note">
+                <input type="text" id="inputNote_${idx}" value="${member.note || ''}" ${readOnlyAttr}>
+            </div>
+        `;
+        container.appendChild(row);
+    });
+}
+
+        function toggleEditMode(enable) {
+    isEditing = enable; // 更新全域變數
+    
+    // 1. 切換按鈕顯示
+    document.getElementById('editPayListButton').style.display = enable ? 'none' : 'inline-block';
+    document.getElementById('savePayListButton').style.display = enable ? 'inline-block' : 'none';
+    
+    // 2. 重新渲染列表（renderPayList 會根據 isEditing 決定是否加 readonly）
+    renderPayList();
+}
+
+        function updatePaymentButtons(hideAll = false, noMembers = false) {
+            const editBtn = document.getElementById('editPayListButton');
+            const saveBtn = document.getElementById('savePayListButton');
+            
+            if (hideAll || noMembers) {
+                editBtn.style.display = 'none';
+                saveBtn.style.display = 'none';
+            } else {
+                editBtn.style.display = isEditing ? 'none' : 'inline-block';
+                saveBtn.style.display = isEditing ? 'inline-block' : 'none';
+            }
+        }
+
+        function handlePaidChange(memberId, isChecked) {
+            const currentOrder = orderList[currentViewingOrderIndex];
+            if (!currentOrder || !currentOrder.members) return;
+
+            const member = currentOrder.members.find(m => m.id === memberId);
+            if (member) {
+                member.isPaid = isChecked;
+                
+                // 同步更新到 joinedOrderEntries
+                const joinedEntryIndex = getEntryIndexById(memberId);
+                if (joinedEntryIndex !== -1) {
+                    joinedOrderEntries[joinedEntryIndex].entryData.isPaid = isChecked;
+                }
+            }
+        }
+
+        // ====== 函數：儲存團員列表 (我揪的單) ======
+        function savePayList() {
+    const order = orderList[currentViewingOrderIndex];
+    
+    // 1. 循環所有團員並抓取新值
+    order.members.forEach((member, idx) => {
+        const newItem = document.getElementById(`inputItem_${idx}`).value;
+        const newAmount = parseFloat(document.getElementById(`inputAmount_${idx}`).value) || 0;
+        const newPaid = document.getElementById(`inputPaid_${idx}`).checked;
+        const newNote = document.getElementById(`inputNote_${idx}`).value;
+
+        // 2. 更新主揪看到的 order 物件
+        member.item = newItem;
+        member.amount = newAmount;
+        member.paid = newPaid;
+        member.note = newNote;
+
+        // 3. ⭐ 同步更新「參加者」端的 joinedOrderEntries 資料 ⭐
+        // 透過 member.id (在填單時產生的 Date.now()) 來尋找對應紀錄
+        const entryIdx = joinedOrderEntries.findIndex(e => e.entryData.id === member.id);
+        if (entryIdx !== -1) {
+            joinedOrderEntries[entryIdx].entryData.item = newItem;
+            joinedOrderEntries[entryIdx].entryData.amount = newAmount;
+            joinedOrderEntries[entryIdx].entryData.paid = newPaid;
+            joinedOrderEntries[entryIdx].entryData.note = newNote;
+        }
+    });
+
+    alert("修改成功！所有團員資料已同步更新。");
+    toggleEditMode(false); // 儲存完後回到只讀模式
+}
+        
+        function cancelNewOrder() {
+            if (confirm("確定要取消並刪除所有已填寫的資訊嗎？")) {
+                // 清空欄位
+                document.getElementById('newOrderTitle').value = '';
+                document.getElementById('newOrderHost').value = '';
+                document.getElementById('newOrderDeadline').value = '';
+                document.getElementById('newOrderContact').value = '';
+                document.getElementById('newOrderContact2').value = '';
+                document.getElementById('newOrderContact3').value = '';
+                document.getElementById('newOrderPassword').value = '';
+                document.getElementById('newOrderDescription').value = '';
+
+                alert("已取消填單。");
+                showPage('MainPage'); 
+            }
+        }
+        
+        // 初始載入：顯示登入頁面
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("系統已啟動。");
+            showPage('User');
+        });
+//頭貼功能
+function toggleUserMenu() {
+    const menu = document.getElementById('userMenu');
+    menu.classList.toggle('active');
+
+    if (currentUser) {
+        document.getElementById('userGreeting').textContent =
+            `${currentUser.name}，你好！`;
+        document.getElementById('userAccount').textContent =
+            currentUser.account;
+    }
+}
+
+function closeUserMenu() {
+    document.getElementById('userMenu').classList.remove('active');
+}
+
+function deleteOrder(index) {
+    const order = orderList[index];
+    if (!order) return;
+
+    if (!confirm(`確定要刪除訂單「${order.title}」？\n此動作會一併刪除所有填單資料，無法復原。`)) {
+        return;
+    }
+
+    // 1. 刪除所有「我加的單」中屬於此訂單的資料
+    for (let i = joinedOrderEntries.length - 1; i >= 0; i--) {
+        if (joinedOrderEntries[i].order === order) {
+            joinedOrderEntries.splice(i, 1);
+        }
+    }
+    // 2. 從訂單清單刪除
+    orderList.splice(index, 1);
+
+    alert(`訂單「${order.title}」已刪除`);
+    renderOrderList();
+}
+
+function deleteMember(memberId) {
+    const order = orderList[currentViewingOrderIndex];
+    if (!order || !order.members) return;
+
+    if (!confirm("確定要刪除此填單者？")) return;
+
+    // 1. 從訂單的 members 移除
+    order.members = order.members.filter(m => m.id !== memberId);
+
+    // 2. 從「我加的單」同步刪除
+    const index = joinedOrderEntries.findIndex(e => e.entryData.id === memberId);
+    if (index !== -1) {
+        joinedOrderEntries.splice(index, 1);
+    }
+
+    renderPayList();
+}
+//我啾的單修改按鈕
+function viewOrderMembers(orderIndex) {
+    const order = orderList[orderIndex];
+    currentViewingOrderIndex = orderIndex; // 紀錄目前正在看的訂單索引
+
+    // 1. 從所有填單紀錄中，篩選出「屬於這筆訂單」的資料
+    // 這裡假設您的 entry 物件結構中有存 order 的 id
+    const members = joinedOrderEntries.filter(entry => entry.order.id === order.id);
+
+    // 2. 將篩選出的成員暫存到該 order 物件中，以便 payment 頁面讀取
+    // 這樣可以確保顯示的是最新搜尋加入的成員
+    order.members = members.map(m => m.entryData);
+
+    // 3. 切換到 payment 頁面
+    showPage('payment');
+}
+function editOrder(index) {
+    const order = orderList[index];
+    currentViewingOrderIndex = index;
+
+    document.getElementById('newOrderTitle').value = order.title || '';
+    document.getElementById('newOrderHost').value = order.host || '';
+    document.getElementById('newOrderDeadline').value = order.deadline || '';
+    document.getElementById('newOrderContact').value = order.contact || '';
+    document.getElementById('newOrderContact2').value = order.contact2 || '';
+    document.getElementById('newOrderContact3').value = order.contact3 || '';
+    document.getElementById('newOrderPassword').value = order.password || '';
+    document.getElementById('newOrderDescription').value = order.description || '';
+
+    // 圖片預覽（如果有）
+    if (order.menuImageUrl) {
+        const img = document.getElementById('menuImagePreview');
+        img.src = order.menuImageUrl;
+        img.style.display = 'block';
+    }
+
+    showPage('NewOrderPage');
+}
+function togglePasswordVisibility(inputId) {
+    const passwordInput = document.getElementById(inputId);
+    const toggleBtn = passwordInput.nextElementSibling;
+    
+    // 定義眼睛 SVG 路徑 (直接顯示圖案)
+    const eyeOpen = `<svg class="eye-icon" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>`;
+    const eyeClosed = `<svg class="eye-icon" viewBox="0 0 24 24"><path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.82l2.92 2.92c1.51-1.26 2.7-2.89 3.44-4.74-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/></svg>`;
+
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleBtn.innerHTML = eyeOpen;
+    } else {
+        passwordInput.type = 'password';
+        toggleBtn.innerHTML = eyeClosed;
+    }
+}
+    </script>
+
+</body>
+</html>
+
